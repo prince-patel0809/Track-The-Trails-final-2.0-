@@ -1,0 +1,20 @@
+package routes
+
+import (
+	"net/http"
+	"track-the-trails/controllers"
+	"track-the-trails/middlewares"
+)
+
+func ProjectsRoutes() {
+
+	http.Handle(
+		"/project/create",
+		middlewares.AuthMiddleware(http.HandlerFunc(controllers.CreateProject)),
+	)
+
+	http.Handle(
+		"/project/delete/{id}",
+		middlewares.AuthMiddleware(http.HandlerFunc(controllers.DeleteProject)),
+	)
+}
