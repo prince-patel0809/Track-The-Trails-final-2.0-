@@ -17,4 +17,9 @@ func ProjectsRoutes() {
 		"/project/delete/{id}",
 		middlewares.AuthMiddleware(http.HandlerFunc(controllers.DeleteProject)),
 	)
+
+	http.Handle(
+		"/project/update",
+		middlewares.AuthMiddleware(http.HandlerFunc(controllers.UpdateProject)),
+	)
 }
