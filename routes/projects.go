@@ -27,4 +27,9 @@ func ProjectsRoutes() {
 		"/project/GetmyProject",
 		middlewares.AuthMiddleware(http.HandlerFunc(controllers.GetMyProjects)),
 	)
+
+	http.Handle(
+		"/project/GetmyProject/{id}",
+		middlewares.AuthMiddleware(http.HandlerFunc(controllers.GetProjectDetails)),
+	)
 }

@@ -219,3 +219,56 @@ func GetMyProjects(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(projects)
 }
+
+func GetProjectDetails(w http.ResponseWriter, r *http.Request) {
+
+	// ===== GET PROJECT ID FROM URL =====
+	parts := strings.Split(r.URL.Path, "/")
+	projectID, err := strconv.Atoi(parts[len(parts)-1])
+	if err != nil {
+		http.Error(w, "Invalid project ID", http.StatusBadRequest)
+		return
+	}
+
+	// ===== QUERY DATABASE =====
+	var project struct {
+		ProjectID   int    `json:"project_id"`
+		Name        string `json:"name"`
+		Description string `json:"description"`
+		CreatedAt   string `json:"created_at"`
+		OwnerID     int    `json:"owner_id"`
+		OwnerName   string `json:"owner_name"`
+		OwnerEmail  string `json:"owner_email"`
+	}
+
+	err = config.DB.QueryRow(`
+		SELECT 
+			p.project_id,
+			p.name,
+			p.description,
+			p.created_at,
+			u.user_id,
+			u.name,
+			u.email
+		FROM projects p
+		JOIN users u ON p.created_by = u.user_id
+		WHERE p.project_id = $1
+	`, projectID).Scan(
+		&project.ProjectID,
+		&project.Name,
+		&project.Description,
+		&project.CreatedAt,
+		&project.OwnerID,
+		&project.OwnerName,
+		&project.OwnerEmail,
+	)
+
+	if err != nil {
+		http.Error(w, "Project not found", http.StatusNotFound)
+		return
+	}
+
+	// ===== RESPONSE =====
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(project)
+}
