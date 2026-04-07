@@ -167,3 +167,55 @@ func UpdateProject(w http.ResponseWriter, r *http.Request) {
 		"message": "Project updated successfully",
 	})
 }
+
+func GetMyProjects(w http.ResponseWriter, r *http.Request) {
+
+	// ===== GET USER FROM CONTEXT =====
+	val := r.Context().Value(middlewares.UserIDKey)
+
+	userID, ok := val.(int)
+	if !ok {
+		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		return
+	}
+
+	// ===== FETCH PROJECTS =====
+	rows, err := config.DB.Query(
+		`SELECT project_id, name, description, created_at 
+		 FROM projects 
+		 WHERE created_by = $1 
+		 ORDER BY created_at DESC`,
+		userID,
+	)
+
+	if err != nil {
+		http.Error(w, "Database error", 500)
+		return
+	}
+	defer rows.Close()
+
+	// ===== STORE RESULTS =====
+	var projects []map[string]interface{}
+
+	for rows.Next() {
+		var id int
+		var name, description, createdAt string
+
+		err := rows.Scan(&id, &name, &description, &createdAt)
+		if err != nil {
+			http.Error(w, "Error reading data", 500)
+			return
+		}
+
+		projects = append(projects, map[string]interface{}{
+			"project_id":  id,
+			"name":        name,
+			"description": description,
+			"created_at":  createdAt,
+		})
+	}
+
+	// ===== RESPONSE =====
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(projects)
+}

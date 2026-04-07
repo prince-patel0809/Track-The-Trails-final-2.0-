@@ -22,4 +22,9 @@ func ProjectsRoutes() {
 		"/project/update",
 		middlewares.AuthMiddleware(http.HandlerFunc(controllers.UpdateProject)),
 	)
+
+	http.Handle(
+		"/project/GetmyProject",
+		middlewares.AuthMiddleware(http.HandlerFunc(controllers.GetMyProjects)),
+	)
 }
