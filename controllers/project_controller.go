@@ -285,7 +285,13 @@ func AddMember(w http.ResponseWriter, r *http.Request) {
 
 	// ===== GET PROJECT ID =====
 	parts := strings.Split(r.URL.Path, "/")
-	projectID, err := strconv.Atoi(parts[3])
+
+	if len(parts) < 4 {
+		http.Error(w, "Invalid URL", http.StatusBadRequest)
+		return
+	}
+
+	projectID, err := strconv.Atoi(parts[2])
 	if err != nil {
 		http.Error(w, "Invalid project ID", http.StatusBadRequest)
 		return
