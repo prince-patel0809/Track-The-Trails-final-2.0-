@@ -19,6 +19,11 @@ func AuthRoutes() {
 		controllers.UploadProfileImage,
 	)
 
+	http.HandleFunc(
+		"/getAll/users",
+		controllers.GetAllUsers,
+	)
+
 	http.HandleFunc("/auth/google", controllers.GoogleLogin)
 
 	http.HandleFunc("/auth/google/callback", controllers.GoogleCallback)

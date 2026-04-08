@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"net/http"
 	"strings"
+	"time"
 	"track-the-trails/config"
 	"track-the-trails/models"
 	"track-the-trails/utils"
@@ -133,4 +134,61 @@ func LoginUser(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(response)
+}
+
+func GetAllUsers(w http.ResponseWriter, r *http.Request) {
+
+	rows, err := config.DB.Query(`
+		SELECT user_id, name, email, profile_image, role, created_at
+		FROM users
+		ORDER BY created_at DESC
+	`)
+	if err != nil {
+		http.Error(w, "Database error", http.StatusInternalServerError)
+		return
+	}
+	defer rows.Close()
+
+	type User struct {
+		UserID       int       `json:"user_id"`
+		Name         string    `json:"name"`
+		Email        string    `json:"email"`
+		ProfileImage string    `json:"profile_image"`
+		Role         string    `json:"role"`
+		CreatedAt    time.Time `json:"created_at"`
+	}
+
+	var users []User
+
+	for rows.Next() {
+
+		var user User
+		var profileImage sql.NullString // ✅ FIX
+
+		err := rows.Scan(
+			&user.UserID,
+			&user.Name,
+			&user.Email,
+			&profileImage, // ✅ use temp var
+			&user.Role,
+			&user.CreatedAt,
+		)
+
+		if err != nil {
+			http.Error(w, "Error reading data", http.StatusInternalServerError)
+			return
+		}
+
+		// ✅ HANDLE NULL VALUE
+		if profileImage.Valid {
+			user.ProfileImage = profileImage.String
+		} else {
+			user.ProfileImage = ""
+		}
+
+		users = append(users, user)
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(users)
 }
