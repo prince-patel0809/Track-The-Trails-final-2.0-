@@ -32,4 +32,9 @@ func ProjectsRoutes() {
 		"/project/GetmyProject/{id}",
 		middlewares.AuthMiddleware(http.HandlerFunc(controllers.GetProjectDetails)),
 	)
+
+	http.Handle(
+		"/projects/:projectId/members",
+		middlewares.AuthMiddleware(http.HandlerFunc(controllers.AddMember)),
+	)
 }

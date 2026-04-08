@@ -272,3 +272,70 @@ func GetProjectDetails(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(project)
 }
+
+func AddMember(w http.ResponseWriter, r *http.Request) {
+
+	// ===== GET USER FROM CONTEXT =====
+	val := r.Context().Value(middlewares.UserIDKey)
+	userID, ok := val.(int)
+	if !ok {
+		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		return
+	}
+
+	// ===== GET PROJECT ID =====
+	parts := strings.Split(r.URL.Path, "/")
+	projectID, err := strconv.Atoi(parts[3])
+	if err != nil {
+		http.Error(w, "Invalid project ID", http.StatusBadRequest)
+		return
+	}
+
+	// ===== REQUEST BODY =====
+	var input struct {
+		UserID int    `json:"user_id"`
+		Role   string `json:"role"`
+	}
+
+	err = json.NewDecoder(r.Body).Decode(&input)
+	if err != nil || input.UserID == 0 {
+		http.Error(w, "Invalid input", http.StatusBadRequest)
+		return
+	}
+
+	if input.Role == "" {
+		input.Role = "member"
+	}
+
+	// ===== CHECK OWNER =====
+	var creatorID int
+	err = config.DB.QueryRow(
+		"SELECT created_by FROM projects WHERE project_id=$1",
+		projectID,
+	).Scan(&creatorID)
+
+	if err != nil {
+		http.Error(w, "Project not found", http.StatusNotFound)
+		return
+	}
+
+	if creatorID != userID {
+		http.Error(w, "Only owner can add members", http.StatusForbidden)
+		return
+	}
+
+	// ===== INSERT MEMBER =====
+	_, err = config.DB.Exec(
+		"INSERT INTO project_members (project_id, user_id, role) VALUES ($1,$2,$3)",
+		projectID, input.UserID, input.Role,
+	)
+
+	if err != nil {
+		http.Error(w, "User already exists or DB error", http.StatusBadRequest)
+		return
+	}
+
+	json.NewEncoder(w).Encode(map[string]string{
+		"message": "Member added successfully",
+	})
+}
