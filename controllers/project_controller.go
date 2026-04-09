@@ -1,10 +1,12 @@
 package controllers
 
 import (
+	"database/sql"
 	"encoding/json"
 	"net/http"
 	"strconv"
 	"strings"
+	"time"
 
 	"track-the-trails/config"
 	"track-the-trails/middlewares"
@@ -344,4 +346,82 @@ func AddMember(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(map[string]string{
 		"message": "Member added successfully",
 	})
+}
+
+func GetProjectMembers(w http.ResponseWriter, r *http.Request) {
+
+	// ===== GET PROJECT ID =====
+	parts := strings.Split(r.URL.Path, "/")
+
+	// supports both /projects/1/members and /api/projects/1/members
+	projectID, err := strconv.Atoi(parts[len(parts)-2])
+	if err != nil {
+		http.Error(w, "Invalid project ID", http.StatusBadRequest)
+		return
+	}
+
+	// ===== QUERY DATABASE =====
+	rows, err := config.DB.Query(`
+		SELECT 
+			u.user_id,
+			u.name,
+			u.email,
+			u.profile_image,
+			pm.role,
+			pm.added_at
+		FROM project_members pm
+		JOIN users u ON pm.user_id = u.user_id
+		WHERE pm.project_id = $1
+	`, projectID)
+
+	if err != nil {
+		http.Error(w, "Database error", http.StatusInternalServerError)
+		return
+	}
+	defer rows.Close()
+
+	// ===== STRUCT =====
+	type Member struct {
+		UserID       int       `json:"user_id"`
+		Name         string    `json:"name"`
+		Email        string    `json:"email"`
+		ProfileImage string    `json:"profile_image"`
+		Role         string    `json:"role"`
+		AddedAt      time.Time `json:"added_at"`
+	}
+
+	var members []Member
+
+	for rows.Next() {
+
+		var member Member
+		var profileImage sql.NullString // handle NULL
+
+		err := rows.Scan(
+			&member.UserID,
+			&member.Name,
+			&member.Email,
+			&profileImage,
+			&member.Role,
+			&member.AddedAt,
+		)
+
+		if err != nil {
+			http.Error(w, "Error reading data", http.StatusInternalServerError)
+			return
+		}
+
+		// NULL handling
+		if profileImage.Valid {
+			member.ProfileImage = profileImage.String
+		} else {
+			member.ProfileImage = ""
+		}
+
+		members = append(members, member)
+	}
+
+	// ===== RESPONSE =====
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(members)
 }
