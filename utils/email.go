@@ -27,7 +27,7 @@ func SendTaskAssignmentEmail(
 
 	port, err := strconv.Atoi(portStr)
 	if err != nil {
-		port = 587
+		port = 465
 	}
 
 	m := gomail.NewMessage()
