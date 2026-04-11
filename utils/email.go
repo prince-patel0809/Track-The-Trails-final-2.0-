@@ -27,29 +27,86 @@ func SendTaskAssignmentEmail(
 
 	// ===== EMAIL BODY =====
 	m.SetBody("text/html", `
-		<div style="font-family: Arial, sans-serif; padding: 20px;">
-			
-			<h1 style="color:#2c3e50;">🚀 TRACK THE TRAILS</h1>
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+</head>
 
-			<h3>You have been assigned a new task!</h3>
+<body style="margin:0; padding:0; background:#f4f6f8; font-family:Arial, sans-serif;">
 
-			<hr/>
+<table width="100%" cellpadding="0" cellspacing="0">
+<tr>
+<td align="center">
 
-			<p><b>📁 Project:</b> `+projectName+`</p>
-			<p><b>👤 Assigned by:</b> `+ownerName+`</p>
+<!-- CARD -->
+<table width="500" style="background:#ffffff; margin-top:30px; border-radius:10px; padding:20px; box-shadow:0 2px 10px rgba(0,0,0,0.1);">
 
-			<hr/>
+<tr>
+<td align="center">
+<h2 style="color:#2c3e50;">🚀 TRACK THE TRAILS</h2>
+</td>
+</tr>
 
-			<h3>📝 Task Details</h3>
-			<p><b>Title:</b> `+taskTitle+`</p>
-			<p><b>Description:</b> `+description+`</p>
+<tr>
+<td>
+<p style="font-size:16px; color:#333;">Hello 👋,</p>
+<p style="font-size:15px; color:#555;">
+You have been assigned a new task.
+</p>
+</td>
+</tr>
 
-			<hr/>
+<tr>
+<td style="background:#f8f9fa; padding:15px; border-radius:8px;">
+<p><b>📁 Project:</b> `+projectName+`</p>
+<p><b>👤 Assigned by:</b> `+ownerName+`</p>
+</td>
+</tr>
 
-			<p style="color:gray;">Please login to TRACK THE TRAILS to view and manage your task.</p>
+<tr><td height="15"></td></tr>
 
-		</div>
-	`)
+<tr>
+<td style="background:#eef2ff; padding:15px; border-radius:8px;">
+<p><b>📝 Title:</b> `+taskTitle+`</p>
+<p><b>📄 Description:</b> `+description+`</p>
+</td>
+</tr>
+
+<tr><td height="20"></td></tr>
+
+<tr>
+<td align="center">
+<a href="#" style="
+	background:#4f46e5;
+	color:#ffffff;
+	padding:12px 20px;
+	text-decoration:none;
+	border-radius:6px;
+	font-size:14px;
+">
+View Task
+</a>
+</td>
+</tr>
+
+<tr><td height="20"></td></tr>
+
+<tr>
+<td align="center" style="font-size:12px; color:#999;">
+© TRACK THE TRAILS — All rights reserved
+</td>
+</tr>
+
+</table>
+
+</td>
+</tr>
+</table>
+
+</body>
+</html>
+`)
 
 	d := gomail.NewDialer(
 		host,

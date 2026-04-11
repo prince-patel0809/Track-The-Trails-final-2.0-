@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"encoding/json"
+	"log"
 	"net/http"
 	"strconv"
 	"strings"
@@ -126,6 +127,7 @@ func CreateTask(w http.ResponseWriter, r *http.Request) {
 			input.Description,
 		)
 	}
+	log.Println("Sending email to:", email)
 
 	// ===== RESPONSE =====
 	w.Header().Set("Content-Type", "application/json")
