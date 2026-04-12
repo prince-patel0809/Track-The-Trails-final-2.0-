@@ -47,4 +47,8 @@ func ProjectsRoutes() {
 		"/projects/{id}/CreateTask",
 		middlewares.AuthMiddleware(http.HandlerFunc(controllers.CreateTask)),
 	)
+	http.Handle(
+		"/projects/{id}/GetTasks",
+		middlewares.AuthMiddleware(http.HandlerFunc(controllers.GetTasksByProject)),
+	)
 }
